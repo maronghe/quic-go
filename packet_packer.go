@@ -18,7 +18,7 @@ import (
 
 type packer interface {
 	PackCoalescedPacket(protocol.ByteCount) (*coalescedPacket, error)
-	PackPacket() (*packedPacket, error)
+	PackPacket(protocol.ByteCount) (*packedPacket, error)
 	MaybePackProbePacket(protocol.EncryptionLevel) (*packedPacket, error)
 	MaybePackAckPacket(handshakeConfirmed bool) (*packedPacket, error)
 	PackConnectionClose(*qerr.QuicError) (*coalescedPacket, error)
@@ -395,9 +395,9 @@ func (p *packetPacker) packCoalescedPacket(buffer *packetBuffer, maxPacketSize p
 
 // PackPacket packs a packet in the application data packet number space.
 // It should be called after the handshake is confirmed.
-func (p *packetPacker) PackPacket() (*packedPacket, error) {
+func (p *packetPacker) PackPacket(maxPacketSize protocol.ByteCount) (*packedPacket, error) {
 	buffer := getPacketBuffer()
-	contents, err := p.maybeAppendAppDataPacket(buffer, p.maxPacketSize)
+	contents, err := p.maybeAppendAppDataPacket(buffer, utils.MinByteCount(p.maxPacketSize, maxPacketSize))
 	if err != nil || contents == nil {
 		buffer.Release()
 		return nil, err

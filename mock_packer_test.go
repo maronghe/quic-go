@@ -109,18 +109,18 @@ func (mr *MockPackerMockRecorder) PackConnectionClose(arg0 interface{}) *gomock.
 }
 
 // PackPacket mocks base method
-func (m *MockPacker) PackPacket() (*packedPacket, error) {
+func (m *MockPacker) PackPacket(arg0 protocol.ByteCount) (*packedPacket, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PackPacket")
+	ret := m.ctrl.Call(m, "PackPacket", arg0)
 	ret0, _ := ret[0].(*packedPacket)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // PackPacket indicates an expected call of PackPacket
-func (mr *MockPackerMockRecorder) PackPacket() *gomock.Call {
+func (mr *MockPackerMockRecorder) PackPacket(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PackPacket", reflect.TypeOf((*MockPacker)(nil).PackPacket))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PackPacket", reflect.TypeOf((*MockPacker)(nil).PackPacket), arg0)
 }
 
 // SetToken mocks base method

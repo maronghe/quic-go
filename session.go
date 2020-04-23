@@ -1440,7 +1440,7 @@ func (s *session) sendPacket() (bool, error) {
 		s.sendQueue.Send(packet.buffer)
 		return true, nil
 	}
-	packet, err := s.packer.PackPacket()
+	packet, err := s.packer.PackPacket(protocol.MaxByteCount)
 	if err != nil || packet == nil {
 		return false, err
 	}

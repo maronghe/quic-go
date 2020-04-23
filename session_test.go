@@ -1013,7 +1013,7 @@ var _ = Describe("Session", func() {
 		It("sends packets", func() {
 			sess.handshakeConfirmed = true
 			p := getPacket(1)
-			packer.EXPECT().PackPacket().Return(p, nil)
+			packer.EXPECT().PackPacket(protocol.MaxByteCount).Return(p, nil)
 			sess.receivedPacketHandler.ReceivedPacket(0x035e, protocol.Encryption1RTT, time.Now(), true)
 			mconn.EXPECT().Write(gomock.Any())
 			qlogger.EXPECT().SentPacket(p.header, p.buffer.Len(), nil, []wire.Frame{})
@@ -1024,7 +1024,7 @@ var _ = Describe("Session", func() {
 
 		It("doesn't send packets if there's nothing to send", func() {
 			sess.handshakeConfirmed = true
-			packer.EXPECT().PackPacket().Return(nil, nil)
+			packer.EXPECT().PackPacket(protocol.MaxByteCount).Return(nil, nil)
 			sess.receivedPacketHandler.ReceivedPacket(0x035e, protocol.Encryption1RTT, time.Now(), true)
 			sent, err := sess.sendPacket()
 			Expect(err).NotTo(HaveOccurred())
@@ -1046,7 +1046,7 @@ var _ = Describe("Session", func() {
 			fc := mocks.NewMockConnectionFlowController(mockCtrl)
 			fc.EXPECT().IsNewlyBlocked().Return(true, protocol.ByteCount(1337))
 			p := getPacket(1)
-			packer.EXPECT().PackPacket().Return(p, nil)
+			packer.EXPECT().PackPacket(protocol.MaxByteCount).Return(p, nil)
 			sess.connFlowController = fc
 			mconn.EXPECT().Write(gomock.Any())
 			qlogger.EXPECT().SentPacket(p.header, p.length, nil, []wire.Frame{})
@@ -1157,8 +1157,8 @@ var _ = Describe("Session", func() {
 			sph.EXPECT().TimeUntilSend().Return(time.Now()).Times(2)
 			sph.EXPECT().TimeUntilSend().Return(time.Now().Add(time.Hour))
 			sph.EXPECT().SendMode().Return(ackhandler.SendAny).Times(2) // allow 2 packets...
-			packer.EXPECT().PackPacket().Return(getPacket(10), nil)
-			packer.EXPECT().PackPacket().Return(getPacket(11), nil)
+			packer.EXPECT().PackPacket(protocol.MaxByteCount).Return(getPacket(10), nil)
+			packer.EXPECT().PackPacket(protocol.MaxByteCount).Return(getPacket(11), nil)
 			mconn.EXPECT().Write(gomock.Any()).Times(2)
 			go func() {
 				defer GinkgoRecover()
@@ -1177,7 +1177,7 @@ var _ = Describe("Session", func() {
 			sph.EXPECT().TimeUntilSend().Return(time.Now())
 			sph.EXPECT().SendMode().Return(ackhandler.SendAny)
 			sph.EXPECT().SendMode().Return(ackhandler.SendAck)
-			packer.EXPECT().PackPacket().Return(getPacket(100), nil)
+			packer.EXPECT().PackPacket(protocol.MaxByteCount).Return(getPacket(100), nil)
 			mconn.EXPECT().Write(gomock.Any())
 			go func() {
 				defer GinkgoRecover()
@@ -1196,8 +1196,8 @@ var _ = Describe("Session", func() {
 			sph.EXPECT().TimeUntilSend().Return(time.Now().Add(time.Hour))
 			sph.EXPECT().ShouldSendNumPackets().Times(2).Return(1)
 			sph.EXPECT().SendMode().Return(ackhandler.SendAny).AnyTimes()
-			packer.EXPECT().PackPacket().Return(getPacket(100), nil)
-			packer.EXPECT().PackPacket().Return(getPacket(101), nil)
+			packer.EXPECT().PackPacket(protocol.MaxByteCount).Return(getPacket(100), nil)
+			packer.EXPECT().PackPacket(protocol.MaxByteCount).Return(getPacket(101), nil)
 			written := make(chan struct{}, 2)
 			mconn.EXPECT().Write(gomock.Any()).DoAndReturn(func(p []byte) (int, error) {
 				written <- struct{}{}
@@ -1220,9 +1220,9 @@ var _ = Describe("Session", func() {
 			sph.EXPECT().TimeUntilSend().Return(time.Now())
 			sph.EXPECT().TimeUntilSend().Return(time.Now().Add(time.Hour))
 			sph.EXPECT().SendMode().Return(ackhandler.SendAny).Times(3)
-			packer.EXPECT().PackPacket().Return(getPacket(1000), nil)
-			packer.EXPECT().PackPacket().Return(getPacket(1001), nil)
-			packer.EXPECT().PackPacket().Return(getPacket(1002), nil)
+			packer.EXPECT().PackPacket(protocol.MaxByteCount).Return(getPacket(1000), nil)
+			packer.EXPECT().PackPacket(protocol.MaxByteCount).Return(getPacket(1001), nil)
+			packer.EXPECT().PackPacket(protocol.MaxByteCount).Return(getPacket(1002), nil)
 			written := make(chan struct{}, 3)
 			mconn.EXPECT().Write(gomock.Any()).DoAndReturn(func(p []byte) (int, error) {
 				written <- struct{}{}
@@ -1241,7 +1241,7 @@ var _ = Describe("Session", func() {
 			sph.EXPECT().TimeUntilSend().Return(time.Now())
 			sph.EXPECT().ShouldSendNumPackets().Return(1)
 			sph.EXPECT().SendMode().Return(ackhandler.SendAny).AnyTimes()
-			packer.EXPECT().PackPacket()
+			packer.EXPECT().PackPacket(protocol.MaxByteCount)
 			// don't EXPECT any calls to mconn.Write()
 			go func() {
 				defer GinkgoRecover()
@@ -1278,7 +1278,7 @@ var _ = Describe("Session", func() {
 			sph.EXPECT().ShouldSendNumPackets().AnyTimes().Return(1)
 			sph.EXPECT().SentPacket(gomock.Any())
 			sess.sentPacketHandler = sph
-			packer.EXPECT().PackPacket().Return(getPacket(1), nil)
+			packer.EXPECT().PackPacket(protocol.MaxByteCount).Return(getPacket(1), nil)
 
 			go func() {
 				defer GinkgoRecover()
@@ -1296,7 +1296,7 @@ var _ = Describe("Session", func() {
 		})
 
 		It("sets the timer to the ack timer", func() {
-			packer.EXPECT().PackPacket().Return(getPacket(1234), nil)
+			packer.EXPECT().PackPacket(protocol.MaxByteCount).Return(getPacket(1234), nil)
 			sph := mockackhandler.NewMockSentPacketHandler(mockCtrl)
 			sph.EXPECT().TimeUntilSend().Return(time.Now())
 			sph.EXPECT().TimeUntilSend().Return(time.Now().Add(time.Hour))
