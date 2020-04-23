@@ -111,8 +111,11 @@ func (c *cubicSender) OnPacketSent(
 	c.hybridSlowStart.OnPacketSent(packetNumber)
 }
 
-func (c *cubicSender) CanSend(bytesInFlight protocol.ByteCount) bool {
-	return bytesInFlight < c.GetCongestionWindow()
+func (c *cubicSender) AvailableWindow(bytesInFlight protocol.ByteCount) protocol.ByteCount {
+	if bytesInFlight > c.GetCongestionWindow() {
+		return 0
+	}
+	return c.GetCongestionWindow() - bytesInFlight
 }
 
 func (c *cubicSender) InRecovery() bool {

@@ -35,18 +35,18 @@ func (m *MockSendAlgorithmWithDebugInfos) EXPECT() *MockSendAlgorithmWithDebugIn
 	return m.recorder
 }
 
-// CanSend mocks base method
-func (m *MockSendAlgorithmWithDebugInfos) CanSend(arg0 protocol.ByteCount) bool {
+// AvailableWindow mocks base method
+func (m *MockSendAlgorithmWithDebugInfos) AvailableWindow(arg0 protocol.ByteCount) protocol.ByteCount {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CanSend", arg0)
-	ret0, _ := ret[0].(bool)
+	ret := m.ctrl.Call(m, "AvailableWindow", arg0)
+	ret0, _ := ret[0].(protocol.ByteCount)
 	return ret0
 }
 
-// CanSend indicates an expected call of CanSend
-func (mr *MockSendAlgorithmWithDebugInfosMockRecorder) CanSend(arg0 interface{}) *gomock.Call {
+// AvailableWindow indicates an expected call of AvailableWindow
+func (mr *MockSendAlgorithmWithDebugInfosMockRecorder) AvailableWindow(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CanSend", reflect.TypeOf((*MockSendAlgorithmWithDebugInfos)(nil).CanSend), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AvailableWindow", reflect.TypeOf((*MockSendAlgorithmWithDebugInfos)(nil).AvailableWindow), arg0)
 }
 
 // GetCongestionWindow mocks base method

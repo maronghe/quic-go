@@ -45,7 +45,7 @@ var _ = Describe("Cubic Sender", func() {
 
 	SendAvailableSendWindowLen := func(packetLength protocol.ByteCount) int {
 		packetsSent := 0
-		for sender.CanSend(bytesInFlight) {
+		for sender.AvailableWindow(bytesInFlight) > 0 {
 			sender.OnPacketSent(clock.Now(), bytesInFlight, packetNumber, packetLength, true)
 			packetNumber++
 			packetsSent++
@@ -88,13 +88,13 @@ var _ = Describe("Cubic Sender", func() {
 		Expect(sender.GetCongestionWindow()).To(Equal(defaultWindowTCP))
 		// Make sure we can send.
 		Expect(sender.TimeUntilSend(0)).To(BeZero())
-		Expect(sender.CanSend(bytesInFlight)).To(BeTrue())
+		Expect(sender.AvailableWindow(bytesInFlight)).ToNot(BeZero())
 		// And that window is un-affected.
 		Expect(sender.GetCongestionWindow()).To(Equal(defaultWindowTCP))
 
 		// Fill the send window with data, then verify that we can't send.
 		SendAvailableSendWindow()
-		Expect(sender.CanSend(bytesInFlight)).To(BeFalse())
+		Expect(sender.AvailableWindow(bytesInFlight)).To(BeZero())
 	})
 
 	It("paces", func() {
@@ -111,7 +111,7 @@ var _ = Describe("Cubic Sender", func() {
 		// Send exactly 10 packets and ensure the CWND ends at 14 packets.
 		const numberOfAcks = 5
 		// At startup make sure we can send.
-		Expect(sender.CanSend(0)).To(BeTrue())
+		Expect(sender.AvailableWindow(0)).ToNot(BeZero())
 		Expect(sender.TimeUntilSend(0)).To(BeZero())
 
 		SendAvailableSendWindow()
@@ -127,7 +127,7 @@ var _ = Describe("Cubic Sender", func() {
 	It("exponential slow start", func() {
 		const numberOfAcks = 20
 		// At startup make sure we can send.
-		Expect(sender.CanSend(0)).To(BeTrue())
+		Expect(sender.AvailableWindow(0)).ToNot(BeZero())
 		Expect(sender.TimeUntilSend(0)).To(BeZero())
 		Expect(sender.BandwidthEstimate()).To(BeZero())
 		// Make sure we can send.
@@ -334,7 +334,7 @@ var _ = Describe("Cubic Sender", func() {
 		LoseNPackets(int(numPacketsToLose))
 		// Immediately after the loss, ensure at least one packet can be sent.
 		// Losses without subsequent acks can occur with timer based loss detection.
-		Expect(sender.CanSend(bytesInFlight)).To(BeTrue())
+		Expect(sender.AvailableWindow(bytesInFlight)).ToNot(BeZero())
 		AckNPackets(1)
 
 		// We should now have fallen out of slow start with a reduced window.
